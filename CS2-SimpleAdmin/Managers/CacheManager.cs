@@ -272,12 +272,12 @@ internal class CacheManager: IDisposable
 
                     if (string.IsNullOrWhiteSpace(ban.PlayerIp) ||
                         !IpHelper.TryConvertIpToUint(ban.PlayerIp, out var ipUInt) ||
-                        !_ipIndex.TryGetValue(ipUInt, out var ipBans)) continue;
-                    {
-                        ipBans.RemoveAll(b => b.Id == id);
-                        if (ipBans.Count == 0)
-                            _ipIndex.TryRemove(ipUInt, out _);
-                    }
+                        !_ipIndex.TryGetValue(ipUInt, out var ipBans))
+                        continue;
+
+                    ipBans.RemoveAll(b => b.Id == id);
+                    if (ipBans.Count == 0)
+                        _ipIndex.TryRemove(ipUInt, out _);
                 }
             }
             

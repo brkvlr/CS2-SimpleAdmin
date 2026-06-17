@@ -501,7 +501,7 @@ public partial class CS2_SimpleAdmin
         
         Task.Run(async () =>
         {
-            await PermissionManager.CrateGroupsJsonFile();
+            await PermissionManager.CreateGroupsJsonFile();
             await PermissionManager.CreateAdminsJsonFile();
             
             var adminsFile = await File.ReadAllTextAsync(Instance.ModuleDirectory + "/data/admins.json");

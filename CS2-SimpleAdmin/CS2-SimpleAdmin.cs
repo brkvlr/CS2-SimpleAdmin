@@ -14,7 +14,7 @@ using MySqlConnector;
 
 namespace CS2_SimpleAdmin;
 
-[MinimumApiVersion(300)]
+[MinimumApiVersion(369)]
 public partial class CS2_SimpleAdmin : BasePlugin, IPluginConfig<CS2_SimpleAdminConfig>
 {
     internal static CS2_SimpleAdmin Instance { get; private set; } = new();
@@ -22,7 +22,7 @@ public partial class CS2_SimpleAdmin : BasePlugin, IPluginConfig<CS2_SimpleAdmin
     public override string ModuleName => "CS2-SimpleAdmin" + (Helper.IsDebugBuild ? " (DEBUG)" : " (RELEASE)");
     public override string ModuleDescription => "Simple admin plugin for Counter-Strike 2 :)";
     public override string ModuleAuthor => "daffyy";
-    public override string ModuleVersion => "1.8.0a";
+    public override string ModuleVersion => "1.8.1a";
     
     public override void Load(bool hotReload)
     {
@@ -55,14 +55,12 @@ public partial class CS2_SimpleAdmin : BasePlugin, IPluginConfig<CS2_SimpleAdmin
                 };
             });
             
-            PlayersTimer?.Kill();
-            PlayersTimer = null;
         }
         _cBasePlayerControllerSetPawnFunc = new MemoryFunctionVoid<CBasePlayerController, CCSPlayerPawn, bool, bool>(GameData.GetSignature("CBasePlayerController_SetPawn"));
 
         SimpleAdminApi = new Api.CS2_SimpleAdminApi();
         Capabilities.RegisterPluginCapability(ICS2_SimpleAdminApi.PluginCapability, () => SimpleAdminApi);
-        
+
         PlayersTimer?.Kill();
         PlayersTimer = null;
         PlayerManager.CheckPlayersTimer();
@@ -95,20 +93,11 @@ public partial class CS2_SimpleAdmin : BasePlugin, IPluginConfig<CS2_SimpleAdmin
                 $"to rejoin the server for 60 seconds. " +
                 $"To enable instant banning, set 'UnlockConCommands': true"
             );
-            _logger?.LogError(
-                $"⚠️ Warning: 'UnlockConCommands' is disabled in core.json. " +
-                $"Players will not be automatically banned when kicked and will be able " +
-                $"to rejoin the server for 60 seconds. " +
-                $"To enable instant banning, set 'UnlockConCommands': true"
-            );
         }
     }
 
     public void OnConfigParsed(CS2_SimpleAdminConfig config)
     {
-        if (System.Diagnostics.Debugger.IsAttached)
-            Environment.FailFast(":(!");
-        
         Helper.UpdateConfig(config);
 
         _logger = Logger;
@@ -164,8 +153,11 @@ public partial class CS2_SimpleAdmin : BasePlugin, IPluginConfig<CS2_SimpleAdmin
         }
         
         if (missing)
-            Server.ExecuteCommand($"css_plugins unload {ModuleName}");
-        
+        {
+            Server.ExecuteCommand($"css_plugins unload {ModuleDirectory}");
+            return;
+        }
+
         Instance = this;
         
     if (Config.DatabaseConfig.DatabaseType.Contains("mysql", StringComparison.CurrentCultureIgnoreCase))
