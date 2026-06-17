@@ -70,14 +70,14 @@ jobs:
       - name: Extract & Zip StatusBlocker Linux
         run: |
           mkdir -p statusblocker-linux &&
-          tar -xzf Modules/CS2-SimpleAdmin_StealthModule/METAMOD\ PLUGIN/StatusBlocker-v*-linux.tar.gz -C statusblocker-linux &&
+          tar -xzf Modules/CS2-SimpleAdmin_StealthModule/METAMOD\ PLUGIN/StatusBlocker*linux.tar.gz -C statusblocker-linux &&
           cd statusblocker-linux &&
           zip -r ../StatusBlocker-linux-${{ steps.get_version.outputs.VERSION }}.zip ./*
 
       - name: Extract & Zip StatusBlocker Windows
         run: |
           mkdir -p statusblocker-windows &&
-          tar -xzf Modules/CS2-SimpleAdmin_StealthModule/METAMOD\ PLUGIN/StatusBlocker-v*-windows.tar.gz -C statusblocker-windows &&
+          tar -xzf Modules/CS2-SimpleAdmin_StealthModule/METAMOD\ PLUGIN/StatusBlocker*windows.tar.gz -C statusblocker-windows &&
           cd statusblocker-windows &&
           zip -r ../StatusBlocker-windows-${{ steps.get_version.outputs.VERSION }}.zip ./*
 
@@ -122,7 +122,8 @@ jobs:
               addons/counterstrikesharp/configs/plugins/CS2-SimpleAdmin/CS2-SimpleAdmin.json
 
             - StatusBlocker:
-              Place the plugin files directly into the addons directory.
-              This plugin is a Metamod module for the StealthModule and does not require a subfolder.
+              Extract the ZIP to your server root directory.
+              The archive already contains the correct addons/ folder structure (addons/metamod/ and addons/status_blocker/).
+              This plugin is a Metamod module required by the StealthModule.
 
             Remember to restart or reload your game server after installing and configuring the plugins.
