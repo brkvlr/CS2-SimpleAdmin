@@ -283,7 +283,7 @@ internal class PlayerManager
                 if (player == null || !player.IsValid || player.PlayerName == name) continue;
                 player.Rename(name);
             }
-        });
+        }, TimerFlags.REPEAT);
         
         CS2_SimpleAdmin.Instance.PlayersTimer = CS2_SimpleAdmin.Instance.AddTimer(61.0f, () =>
         {

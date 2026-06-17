@@ -73,7 +73,7 @@ internal class CacheManager: IDisposable
             if (CS2_SimpleAdmin.Instance.Config.OtherSettings.CheckMultiAccountsByIp)
             {
                 // Optimization: Load IP history and build cache in single pass
-                var ipHistory = await connection.QueryAsync<(ulong steamid, string? name, uint address, DateTime used_at)>(
+                var ipHistory = await connection.QueryAsync<IpHistoryRow>(
                     "SELECT steamid, name, address, used_at FROM sa_players_ips ORDER BY steamid, address, used_at DESC");
 
                 var unknownName = CS2_SimpleAdmin._localizer?["sa_unknown"] ?? "Unknown";
@@ -84,24 +84,24 @@ internal class CacheManager: IDisposable
                 foreach (var record in ipHistory)
                 {
                     // When we encounter a new steamid, save the previous one
-                    if (record.steamid != currentSteamId && currentSteamId != 0)
+                    if (record.Steamid != currentSteamId && currentSteamId != 0)
                     {
                         _playerIpsCache[currentSteamId] = currentIpSet;
                         currentIpSet = new HashSet<IpRecord>(new IpRecordComparer());
                         latestIpTimestamps.Clear();
                     }
 
-                    currentSteamId = record.steamid;
+                    currentSteamId = record.Steamid;
 
                     // Only keep the latest timestamp for each IP
-                    if (!latestIpTimestamps.TryGetValue(record.address, out var existingTimestamp) ||
-                        record.used_at > existingTimestamp)
+                    if (!latestIpTimestamps.TryGetValue(record.Address, out var existingTimestamp) ||
+                        record.Used_at > existingTimestamp)
                     {
-                        latestIpTimestamps[record.address] = record.used_at;
+                        latestIpTimestamps[record.Address] = record.Used_at;
                         currentIpSet.Add(new IpRecord(
-                            record.address,
-                            record.used_at,
-                            string.IsNullOrEmpty(record.name) ? unknownName : record.name
+                            record.Address,
+                            record.Used_at,
+                            string.IsNullOrEmpty(record.Name) ? unknownName : record.Name
                         ));
                     }
                 }
@@ -283,23 +283,23 @@ internal class CacheManager: IDisposable
             
             if (CS2_SimpleAdmin.Instance.Config.OtherSettings.CheckMultiAccountsByIp)
             {
-                var ipHistory = (await connection.QueryAsync<(ulong steamid, string? name, uint address, DateTime used_at)>(
+                var ipHistory = (await connection.QueryAsync<IpHistoryRow>(
                     "SELECT steamid, name, address, used_at FROM sa_players_ips WHERE used_at >= @lastUpdate ORDER BY used_at DESC LIMIT 300",
                     new { lastUpdate = _lastUpdateTime }));
 
-                foreach (var group in ipHistory.AsValueEnumerable().GroupBy(x => x.steamid))
+                foreach (var group in ipHistory.AsValueEnumerable().GroupBy(x => x.Steamid))
                 {
                     var ipSet = new HashSet<IpRecord>(
                         group
-                            .GroupBy(x => x.address)
+                            .GroupBy(x => x.Address)
                             .Select(g =>
                             {
-                                var latest = g.MaxBy(x => x.used_at);
+                                var latest = g.MaxBy(x => x.Used_at);
                                 return new IpRecord(
                                     g.Key,
-                                    latest.used_at,
-                                    !string.IsNullOrEmpty(latest.name)
-                                        ? latest.name
+                                    latest.Used_at,
+                                    !string.IsNullOrEmpty(latest.Name)
+                                        ? latest.Name
                                         : CS2_SimpleAdmin._localizer?["sa_unknown"] ?? "Unknown"
                                 );
                             }),
