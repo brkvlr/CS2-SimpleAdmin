@@ -84,14 +84,14 @@ internal class CacheManager: IDisposable
                 foreach (var record in ipHistory)
                 {
                     // When we encounter a new steamid, save the previous one
-                    if (record.Steamid != currentSteamId && currentSteamId != 0)
+                    if ((ulong)record.Steamid != currentSteamId && currentSteamId != 0)
                     {
                         _playerIpsCache[currentSteamId] = currentIpSet;
                         currentIpSet = new HashSet<IpRecord>(new IpRecordComparer());
                         latestIpTimestamps.Clear();
                     }
 
-                    currentSteamId = record.Steamid;
+                    currentSteamId = (ulong)record.Steamid;
 
                     // Only keep the latest timestamp for each IP
                     if (!latestIpTimestamps.TryGetValue(record.Address, out var existingTimestamp) ||
@@ -307,7 +307,7 @@ internal class CacheManager: IDisposable
                     );
 
                     _playerIpsCache.AddOrUpdate(
-                        group.Key,
+                        (ulong)group.Key,
                         _ => ipSet,
                         (_, existingSet) =>
                         {
