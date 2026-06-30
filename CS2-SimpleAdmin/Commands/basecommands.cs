@@ -501,25 +501,32 @@ public partial class CS2_SimpleAdmin
         
         Task.Run(async () =>
         {
-            await PermissionManager.CreateGroupsJsonFile();
+            var oldAdmins = PermissionManager.AdminCache.Keys.ToList();
+            PermissionManager.AdminCache.Clear();
+
+            await PermissionManager.CrateGroupsJsonFile();
             await PermissionManager.CreateAdminsJsonFile();
             
             var adminsFile = await File.ReadAllTextAsync(Instance.ModuleDirectory + "/data/admins.json");
             var groupsFile = await File.ReadAllTextAsync(Instance.ModuleDirectory + "/data/groups.json");
             
-               await Server.NextWorldUpdateAsync(() =>
+            await Server.NextWorldUpdateAsync(() =>
             {
-                AddTimer(1, () =>
+                // Clear old permissions from CSS memory
+                foreach (var steamId in oldAdmins)
                 {
-                    if (!string.IsNullOrEmpty(adminsFile))
-                        AddTimer(2.0f, () => AdminManager.LoadAdminData(ModuleDirectory + "/data/admins.json"));
-                    if (!string.IsNullOrEmpty(groupsFile))
-                        AddTimer(3.0f, () => AdminManager.LoadAdminGroups(ModuleDirectory + "/data/groups.json"));
-                    if (!string.IsNullOrEmpty(adminsFile))
-                        AddTimer(4.0f, () => AdminManager.LoadAdminData(ModuleDirectory + "/data/admins.json"));
+                    AdminManager.ClearPlayerPermissions(steamId);
+                    AdminManager.RemovePlayerAdminData(steamId);
+                }
 
-                    _logger?.LogInformation("Loaded admins!");
-                });
+                if (!string.IsNullOrEmpty(adminsFile))
+                    AdminManager.LoadAdminData(ModuleDirectory + "/data/admins.json");
+                if (!string.IsNullOrEmpty(groupsFile))
+                    AdminManager.LoadAdminGroups(ModuleDirectory + "/data/groups.json");
+                if (!string.IsNullOrEmpty(adminsFile))
+                    AdminManager.LoadAdminData(ModuleDirectory + "/data/admins.json");
+
+                _logger?.LogInformation("Loaded admins!");
             });
         });  
 
